@@ -25,6 +25,7 @@ func NewRoomHandler(service *RoomService, validator *validator.Validate, trans u
 		trans:    trans,
 	}
 }
+
 func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		var newRoomData models.CreateRoomData
 
@@ -43,7 +44,7 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(utilities.TransformErrors(validateErrors, h.trans))
 				return
 			} else {
-				http.Error(w, "An unexpected error occurred", http.StatusBadRequest)
+				http.Error(w, "An unexpected error occurred", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -56,5 +57,5 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte("New room created successfully"))
-	}
+}
 
