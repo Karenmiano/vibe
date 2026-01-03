@@ -13,6 +13,7 @@ import (
 	"github.com/Karenmiano/vibe/internal/database/postgres"
 	"github.com/Karenmiano/vibe/internal/hub"
 	"github.com/Karenmiano/vibe/internal/room"
+	"github.com/Karenmiano/vibe/internal/user"
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
@@ -42,6 +43,10 @@ func main() {
 	roomService := room.NewRoomService(roomRepo)
 	roomHandler := room.NewRoomHandler(roomService, validator, trans)
 	mux.HandleFunc("POST /rooms", roomHandler.CreateRoom)
+
+	userHandler := user.NewUserHandler()
+	mux.HandleFunc("GET /register", userHandler.RegisterUserForm)
+	mux.HandleFunc("POST /register", userHandler.RegisterUser)
 
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)
