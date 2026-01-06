@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 
@@ -16,8 +19,6 @@ import (
 	"github.com/Karenmiano/vibe/internal/user"
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
-
-
 
 func main() {
 	err := godotenv.Load()
@@ -30,6 +31,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer dbpool.Close()
+
+	gob.Register(uuid.UUID{})
+
+	sessionStore := sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+	sessionStore.Options.HttpOnly = true
+	sessionStore.Options.SameSite = http.SameSiteLaxMode
 
 	validator, trans := utilities.NewValidator()
 
@@ -44,7 +51,9 @@ func main() {
 	roomHandler := room.NewRoomHandler(roomService, validator, trans)
 	mux.HandleFunc("POST /rooms", roomHandler.CreateRoom)
 
-	userHandler := user.NewUserHandler()
+	userRepo := postgres.NewUserRepository(dbpool)
+	userService := user.NewUserService(userRepo)
+	userHandler := user.NewUserHandler(userService, sessionStore)
 	mux.HandleFunc("GET /register", userHandler.RegisterUserForm)
 	mux.HandleFunc("POST /register", userHandler.RegisterUser)
 

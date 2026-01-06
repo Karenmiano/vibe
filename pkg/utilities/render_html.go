@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func Render(w http.ResponseWriter, filename string, data any) {
+func Render(w http.ResponseWriter, filename string, data any, statusCode int) {
 	tmpl, err := template.ParseFiles(filename)
 	
 	if err != nil {
@@ -25,5 +25,6 @@ func Render(w http.ResponseWriter, filename string, data any) {
 		return
 	}
 
+	w.WriteHeader(statusCode)
 	buf.WriteTo(w)
 }

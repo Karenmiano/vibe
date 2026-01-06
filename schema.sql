@@ -9,7 +9,7 @@ CREATE TABLE users (
 
 CREATE TABLE rooms (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255),
+    name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     private BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()

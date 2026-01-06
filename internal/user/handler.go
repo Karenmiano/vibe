@@ -1,10 +1,15 @@
 package user
 
 import (
+	"errors"
+	"log"
 	"net/http"
 	"regexp"
-	"strings"
 	"unicode/utf8"
+
+	"github.com/gorilla/sessions"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
@@ -21,27 +26,19 @@ type CreateUserData struct {
 func (data *CreateUserData) Validate() bool {
 	data.Errors = make(map[string][]string)
 
-	data.Username = strings.TrimSpace(data.Username)
-
-	uLen := utf8.RuneCountInString(data.Username)
-	if uLen < 3 {
-		data.Errors["username"] = append(data.Errors["username"], "Username must be at least 3 characters long")
-	} else if uLen > 16 {
-		data.Errors["username"] = append(data.Errors["username"], "Username cannot exceed 16 characters")
+	if !rxUserName.MatchString(data.Username) {
+		data.Errors["username"] = append(data.Errors["username"], "Username can only contain letters, numbers, dots (.), and underscores (_)")
 	} else {
-		if !rxUserName.MatchString(data.Username) {
-			data.Errors["username"] = append(data.Errors["username"], "Username can only contain letters, numbers, dots (.), and underscores (_)")
-		}
-		if strings.HasPrefix(data.Username, ".") || strings.HasPrefix(data.Username, "_") {
-			data.Errors["username"] = append(data.Errors["username"], "Username cannot start with a dot or underscore")
-		}
-		if strings.HasSuffix(data.Username, ".") || strings.HasSuffix(data.Username, "_") {
-			data.Errors["username"] = append(data.Errors["username"], "Username cannot end with a dot or underscore")
+		uLen := utf8.RuneCountInString(data.Username)
+		if uLen < 3 {
+			data.Errors["username"] = append(data.Errors["username"], "Username must be at least 3 characters long")
+		} else if uLen > 16 {
+			data.Errors["username"] = append(data.Errors["username"], "Username cannot exceed 16 characters")
 		}
 	}
 
 	if utf8.RuneCountInString(data.Password) < 6 {
-		data.Errors["password"] = append(data.Errors["password"], "Password must be at least 6 character long")
+		data.Errors["password"] = append(data.Errors["password"], "Password must be at least 6 characters long")
 	}
 	
 	return len(data.Errors) == 0
@@ -49,11 +46,15 @@ func (data *CreateUserData) Validate() bool {
 
 
 type UserHandler struct {
-
+	userService *UserService
+	sessionStore sessions.Store
 }
 
-func NewUserHandler() *UserHandler {
-	return &UserHandler{}
+func NewUserHandler(userService *UserService, sessionStore sessions.Store) *UserHandler {
+	return &UserHandler{
+		userService: userService,
+		sessionStore: sessionStore,
+	}
 }
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -63,13 +64,38 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if newUserData.Validate() == false {
-		utilities.Render(w, "web/templates/register.html", newUserData)
+		utilities.Render(w, "web/templates/register.html", newUserData, http.StatusBadRequest)
 		return
 	}
 
+	userId, err := h.userService.RegisterUser(r.Context(), newUserData.Username, newUserData.Password)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			newUserData.Errors["username"] = append(newUserData.Errors["username"], "Username already exists")
+			utilities.Render(w, "web/templates/register.html", newUserData, http.StatusBadRequest)
+			return
+		}
+
+		log.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	// logging user in by giving a session cookie
+	session, _ := h.sessionStore.Get(r, "vibe")
+	session.Values["userId"] = userId
+	err = session.Save(r, w)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User registration success!"))
 }
 
 func (h *UserHandler) RegisterUserForm(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/register.html", nil)
+	utilities.Render(w, "web/templates/register.html", nil, http.StatusOK)
 }

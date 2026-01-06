@@ -3,24 +3,27 @@ package room
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/Karenmiano/vibe/internal/models"
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
 type RoomHandler struct {
-	service *RoomService
+	roomService *RoomService
 	validator *validator.Validate
 	trans ut.Translator
 }
 
-func NewRoomHandler(service *RoomService, validator *validator.Validate, trans ut.Translator) *RoomHandler {
+func NewRoomHandler(roomService *RoomService, validator *validator.Validate, trans ut.Translator) *RoomHandler {
 	return &RoomHandler{
-		service:  service,
+		roomService:  roomService,
 		validator: validator,
 		trans:    trans,
 	}
@@ -44,14 +47,23 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(utilities.TransformErrors(validateErrors, h.trans))
 				return
 			} else {
-				http.Error(w, "An unexpected error occurred", http.StatusInternalServerError)
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
 				return
 			}
 		}
 
-		err = h.service.CreateRoom(r.Context(), newRoomData)
+		err = h.roomService.CreateRoom(r.Context(), newRoomData)
 		if err != nil {
-			http.Error(w, "Could not create room", http.StatusInternalServerError)
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"name": "This name is already taken"})
+				return
+			}
+
+			log.Println(err)
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 			return
 		}
 
