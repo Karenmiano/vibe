@@ -2,10 +2,15 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/Karenmiano/vibe/internal/user"
 )
 
 type UserRepository struct {
@@ -29,6 +34,11 @@ func (r *UserRepository) RegisterUser(ctx context.Context, username string, pass
 
 	_, err = r.db.Exec(ctx, query, userId, username, passwordHash)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation{
+			return uuid.Nil, user.ErrUserExists
+		}
+		
 		return uuid.Nil, err
 	}
 

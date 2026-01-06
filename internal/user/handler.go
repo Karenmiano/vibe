@@ -8,8 +8,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/gorilla/sessions"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
@@ -70,9 +68,9 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := h.userService.RegisterUser(r.Context(), newUserData.Username, newUserData.Password)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			newUserData.Errors["username"] = append(newUserData.Errors["username"], "Username already exists")
+		// if username is taken return error message on field username
+		if errors.Is(err, ErrUserExists) {
+			newUserData.Errors["username"] = append(newUserData.Errors["username"], ErrUserExists.Error())
 			utilities.Render(w, "web/templates/register.html", newUserData, http.StatusBadRequest)
 			return
 		}
