@@ -54,8 +54,10 @@ func main() {
 	userRepo := postgres.NewUserRepository(dbpool)
 	userService := user.NewUserService(userRepo)
 	userHandler := user.NewUserHandler(userService, sessionStore)
-	mux.HandleFunc("GET /register", userHandler.RegisterUserForm)
+	mux.HandleFunc("GET /register", userHandler.RegistrationForm)
 	mux.HandleFunc("POST /register", userHandler.RegisterUser)
+	mux.HandleFunc("GET /login", userHandler.LoginForm)
+	mux.HandleFunc("POST /login", userHandler.LoginUser)
 
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)

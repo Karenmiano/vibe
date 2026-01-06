@@ -35,8 +35,11 @@ func (data *CreateUserData) Validate() bool {
 		}
 	}
 
-	if utf8.RuneCountInString(data.Password) < 6 {
+	pLen := utf8.RuneCountInString(data.Password)
+	if pLen < 6 {
 		data.Errors["password"] = append(data.Errors["password"], "Password must be at least 6 characters long")
+	} else if pLen > 72 {
+		data.Errors["password"] = append(data.Errors["password"], "Password is too long")
 	}
 	
 	return len(data.Errors) == 0
@@ -53,6 +56,10 @@ func NewUserHandler(userService *UserService, sessionStore sessions.Store) *User
 		userService: userService,
 		sessionStore: sessionStore,
 	}
+}
+
+func (h *UserHandler) RegistrationForm(w http.ResponseWriter, r *http.Request) {
+	utilities.Render(w, "web/templates/register.html", nil, http.StatusOK)
 }
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -94,6 +101,34 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User registration success!"))
 }
 
-func (h *UserHandler) RegisterUserForm(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/register.html", nil, http.StatusOK)
+
+func (h *UserHandler) LoginForm(w http.ResponseWriter, r *http.Request) {
+	utilities.Render(w, "web/templates/login.html", nil, http.StatusOK)
+}
+
+func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	userId, err := h.userService.LoginUser(r.Context(), r.PostFormValue("username"), r.PostFormValue("password"))
+	if err != nil {
+		if errors.Is(err, ErrInvalidCredentials) {
+			utilities.Render(w, "web/templates/login.html", ErrInvalidCredentials.Error(), http.StatusBadRequest)
+			return
+		}
+
+		log.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+
+	session, _ := h.sessionStore.Get(r, "vibe")
+	session.Values["userId"] = userId
+	err = session.Save(r, w)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Login successful"))
 }
