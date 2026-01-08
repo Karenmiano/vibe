@@ -82,7 +82,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println(err)
+		log.Println(err)	
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}

@@ -15,6 +15,7 @@ import (
 
 	"github.com/Karenmiano/vibe/internal/database/postgres"
 	"github.com/Karenmiano/vibe/internal/hub"
+	"github.com/Karenmiano/vibe/internal/middleware"
 	"github.com/Karenmiano/vibe/internal/room"
 	"github.com/Karenmiano/vibe/internal/user"
 	"github.com/Karenmiano/vibe/pkg/utilities"
@@ -40,7 +41,14 @@ func main() {
 
 	validator, trans := utilities.NewValidator()
 
+	authMiddleware := middleware.NewAuthMiddleware(sessionStore)
+
 	mux := http.NewServeMux()
+
+	mux.Handle("/", authMiddleware.Authenticate(http.HandlerFunc( func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("This will be the main page with rooms and chats"))
+	})))
 
 	hub := hub.NewHub()
 	mux.Handle("/hub", hub)
