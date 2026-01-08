@@ -132,3 +132,16 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Login successful"))
 }
+
+func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
+	session, _ := h.sessionStore.Get(r, "vibe")
+	delete(session.Values, "userId")
+	err := session.Save(r, w)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}

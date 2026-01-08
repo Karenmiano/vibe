@@ -66,6 +66,7 @@ func main() {
 	mux.HandleFunc("POST /register", userHandler.RegisterUser)
 	mux.HandleFunc("GET /login", userHandler.LoginForm)
 	mux.HandleFunc("POST /login", userHandler.LoginUser)
+	mux.HandleFunc("POST /logout", userHandler.LogoutUser)
 
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)
