@@ -45,13 +45,13 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/", authMiddleware.Authenticate(http.HandlerFunc( func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("This will be the main page with rooms and chats"))
-	})))
+
+	fs := http.FileServer(http.Dir("web/static"))
+	mux.Handle("/web/static/", http.StripPrefix("/web/static/", fs))
 
 	hub := hub.NewHub()
-	mux.Handle("/hub", hub)
+	mux.Handle("/", authMiddleware.Authenticate(http.HandlerFunc(hub.Hub)))
+	mux.HandleFunc("/wsConnect", hub.ServeWebSocket)
 	go hub.Run()
 
 	roomRepo := postgres.NewRoomRepository(dbpool)
@@ -74,3 +74,4 @@ func main() {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
+

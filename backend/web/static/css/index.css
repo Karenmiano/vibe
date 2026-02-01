@@ -1,0 +1,86 @@
+:root {
+  --base-color: rgb(26, 26, 26);
+  --text-color: #ffffff;
+  --line-color: #42434a;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+*:not(dialog) {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: "Inter", sans-serif;
+}
+
+ul {
+  list-style: none;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+body {
+  min-height: 100dvh;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  background-color: var(--base-color);
+  color: var(--text-color);
+  letter-spacing: -1px;
+}
+
+.chats {
+  width: 400px;
+  border-right: 1px solid var(--line-color);
+  padding: 0 1rem;
+}
+
+.chats header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.avatar-container {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-color);
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-filters {
+  display: flex;
+  gap: 2rem;
+}
+
+/*
+.search {
+  width: 100%;
+  border: none;
+  background-color: var(--line-color);
+  border-radius: 999em;
+  padding: 10px 20px;
+}
+*/

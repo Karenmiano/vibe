@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/Karenmiano/vibe/pkg/utilities"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
@@ -46,11 +47,15 @@ func (h *Hub) Run() {
 	}
 }
 
+func (h *Hub) Hub(w http.ResponseWriter, r *http.Request) {
+	utilities.Render(w, "web/templates/hub.html", nil, http.StatusOK)
+}
+
 const socketBufferSize = 1024
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
-func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Hub) ServeWebSocket(w http.ResponseWriter, r *http.Request) {
 	socket, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
