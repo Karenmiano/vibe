@@ -29,4 +29,5 @@ CREATE TABLE messages (
     sender_id UUID REFERENCES users(id) ON DELETE SET NULL,
     content TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
+    -- sequence number
 );

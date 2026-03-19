@@ -1,0 +1,47 @@
+:root {
+  --base-color: hsl(0, 0%, 10%);
+  --text-color: #ffffff;
+  --secondary-text-color: hsl(0, 0%, 100%, 0.4);
+  --page-top-gap: 1rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+*:not(dialog) {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+}
+
+html {
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--base-color);
+  color: var(--text-color);
+  /* letter-spacing: -1px; */
+}
+
+ul {
+  list-style: none;
+}
