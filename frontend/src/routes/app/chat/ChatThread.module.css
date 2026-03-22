@@ -1,0 +1,20 @@
+.chatThread {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.feed {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.messageForm {
+  flex-shrink: 0;
+}

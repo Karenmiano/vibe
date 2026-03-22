@@ -1,13 +1,23 @@
 .container {
   display: grid;
   grid-template-rows: auto 1fr;
-  row-gap: 1.25rem;
+  gap: 1.25rem;
   padding-left: 0.5rem;
 }
 
 @media (min-width: 400px) {
   .container {
     padding-left: 1rem;
+  }
+}
+
+@media (max-width: 959px) {
+  .chatOpen {
+    gap: 0;
+  }
+
+  .chatOpen > :first-child {
+    display: none;
   }
 }
 
@@ -18,5 +28,11 @@
     grid-template-rows: 1fr;
     overflow: hidden;
     padding-left: 0rem;
+  }
+}
+
+@media (max-width: 959px) {
+  .container:has(.chatThread) > :first-child {
+    display: none;
   }
 }

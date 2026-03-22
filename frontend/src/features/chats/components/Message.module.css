@@ -1,0 +1,37 @@
+.msg {
+  max-width: 90%;
+  padding: 0.75rem 1rem 0.25rem 1rem;
+}
+
+.incomingMessage {
+  position: relative;
+  justify-self: start;
+  background-color: hsl(258, 90%, 72%, 5%);
+  border-radius: 0 1rem 1rem 1rem;
+}
+
+.outgoingMessage {
+  position: relative;
+  justify-self: end;
+  background-color: hsl(102, 100%, 54.1%);
+  color: #000000;
+  border-radius: 1rem 1rem 0rem 1rem;
+}
+
+.senderName {
+  color: var(--secondary-text-color);
+  font-size: 0.875rem;
+}
+
+.timestamp {
+  text-align: end;
+  font-size: 0.75rem;
+}
+
+.incomingMessage .timestamp {
+  color: var(--secondary-text-color);
+}
+
+.outgoingMessage .timestamp {
+  color: hsl(0, 0%, 0%, 60%);
+}

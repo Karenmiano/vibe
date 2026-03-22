@@ -1,0 +1,20 @@
+.recipient {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.avatar {
+  height: 3rem;
+  width: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.recipientName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

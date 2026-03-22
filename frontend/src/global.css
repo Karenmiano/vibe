@@ -1,5 +1,5 @@
 :root {
-  --base-color: hsl(0, 0%, 10%);
+  --base-color: #0e0e0e;
   --text-color: #ffffff;
   --secondary-text-color: hsl(0, 0%, 100%, 0.4);
   --page-top-gap: 1rem;
