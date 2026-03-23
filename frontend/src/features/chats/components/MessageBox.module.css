@@ -9,10 +9,6 @@
   border-radius: 999px;
 }
 
-.messageBox:focus-within {
-  border: 1px solid #6e6e6e;
-}
-
 .messageInput {
   flex: 1;
   background-color: transparent;

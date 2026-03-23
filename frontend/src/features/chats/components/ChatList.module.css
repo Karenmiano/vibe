@@ -41,7 +41,7 @@
   .chats {
     width: 380px;
     border-right: 1px solid var(--secondary-text-color);
-    padding: var(--page-top-gap) 0.5rem 0 0.5rem;
+    padding: var(--page-top-gap) 0.5rem 0;
     overflow: hidden;
   }
 
@@ -69,5 +69,18 @@
     &:hover {
       background-color: hsl(0, 0%, 100%, 0.07);
     }
+  }
+}
+
+@media (min-width: 1240px) {
+  .chats {
+    width: 400px;
+    padding: var(--page-top-gap) 0.75rem 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .chats {
+    width: 420px;
   }
 }

@@ -14,6 +14,7 @@
 @media (max-width: 959px) {
   .chatOpen {
     gap: 0;
+    padding-left: 0;
   }
 
   .chatOpen > :first-child {
@@ -26,13 +27,8 @@
     height: 100vh;
     grid-template-columns: auto 1fr;
     grid-template-rows: 1fr;
+    gap: 0;
     overflow: hidden;
     padding-left: 0rem;
-  }
-}
-
-@media (max-width: 959px) {
-  .container:has(.chatThread) > :first-child {
-    display: none;
   }
 }
