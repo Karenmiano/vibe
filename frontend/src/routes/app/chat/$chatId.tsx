@@ -4,6 +4,7 @@ import ChatThreadHeader from "@/features/chats/components/ChatThreadHeader";
 import styles from "./ChatThread.module.css";
 import { conversation } from "@/mocks/chatThread";
 import Message from "@/features/chats/components/Message";
+import MessageBox from "@/features/chats/components/MessageBox";
 
 export const Route = createFileRoute("/app/chat/$chatId")({
   component: ChatThread,
@@ -18,9 +19,7 @@ function ChatThread() {
           <Message message={message} />
         ))}
       </ul>
-      <form className={styles.messageForm}>
-        <input type="text" placeholder="Type a message" name="message" />
-      </form>
+      <MessageBox />
     </main>
   );
 }

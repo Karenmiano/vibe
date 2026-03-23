@@ -233,7 +233,6 @@ export const conversation: Message[] = [
       "The letters framing it as a story within a story also adds so much. Walton's obsession mirrors Frankenstein's exactly.",
     createdAt: "10:44 AM",
   },
-
   {
     senderId: "pixel-panda",
     senderName: "Pixel Panda",

@@ -1,0 +1,42 @@
+.messageBox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  background-color: #2d2d2d;
+  height: 40px;
+  padding: 0 1rem;
+  margin: 0.25rem 0.5rem 0.375rem;
+  border-radius: 999px;
+}
+
+.messageBox:focus-within {
+  border: 1px solid #6e6e6e;
+}
+
+.messageInput {
+  flex: 1;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  color: white;
+}
+
+.messageInput:valid + .sendButton svg {
+  fill: white;
+  stroke: white;
+}
+
+.sendButton {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sendButton svg {
+  fill: var(--secondary-text-color);
+  stroke: var(--secondary-text-color);
+}
