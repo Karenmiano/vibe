@@ -32,9 +32,16 @@ func NewRoomHandler(roomService *RoomService, validator *validator.Validate, tra
 func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		var newRoomData models.CreateRoomData
 
-		err := json.NewDecoder(r.Body).Decode(&newRoomData)
+		err := utilities.DecodeJSONBody(w, r, &newRoomData)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			var mr *utilities.MalformedRequest
+			if errors.As(err, &mr) {
+				http.Error(w, mr.Msg, mr.Status)
+				return
+			}
+			// if error is not a MalformedRequest, log and send a 500 internal server error.
+			log.Println(err)
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 			return
 		}
 
