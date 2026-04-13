@@ -58,10 +58,6 @@ func NewUserHandler(userService *UserService, sessionStore sessions.Store) *User
 	}
 }
 
-func (h *UserHandler) RegistrationForm(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/register.html", nil, http.StatusOK)
-}
-
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	newUserData := &CreateUserData{
 		Username: r.PostFormValue("username"),
@@ -101,10 +97,6 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User registration success!"))
 }
 
-
-func (h *UserHandler) LoginForm(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/login.html", nil, http.StatusOK)
-}
 
 func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := h.userService.LoginUser(r.Context(), r.PostFormValue("username"), r.PostFormValue("password"))

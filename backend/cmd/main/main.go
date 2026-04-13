@@ -62,9 +62,7 @@ func main() {
 	userRepo := postgres.NewUserRepository(dbpool)
 	userService := user.NewUserService(userRepo)
 	userHandler := user.NewUserHandler(userService, sessionStore)
-	mux.HandleFunc("GET /register", userHandler.RegistrationForm)
 	mux.HandleFunc("POST /register", userHandler.RegisterUser)
-	mux.HandleFunc("GET /login", userHandler.LoginForm)
 	mux.HandleFunc("POST /login", userHandler.LoginUser)
 	mux.HandleFunc("POST /logout", userHandler.LogoutUser)
 
