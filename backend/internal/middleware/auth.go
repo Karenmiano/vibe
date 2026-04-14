@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Karenmiano/vibe/pkg/utilities"
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 )
@@ -27,7 +28,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		session, _ := m.sessionStore.Get(r, "vibe")
 		userId, ok := session.Values["userId"].(uuid.UUID)
 		if !ok {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			utilities.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": "authentication required"})
 			return
 		}
 
