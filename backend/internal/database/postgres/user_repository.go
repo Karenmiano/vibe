@@ -24,11 +24,11 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
-func (r *UserRepository) RegisterUser(ctx context.Context, username string, password string) (uuid.UUID, error) {
+func (r *UserRepository) RegisterUser(ctx context.Context, username string, password string) error {
 	userId := uuid.New()
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
-		return uuid.Nil, err
+		return err
 	}
 
 	query := `INSERT INTO users (id, username, password) VALUES ($1, $2, $3)`
@@ -37,13 +37,13 @@ func (r *UserRepository) RegisterUser(ctx context.Context, username string, pass
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation{
-			return uuid.Nil, user.ErrUserExists
+			return user.ErrUserExists
 		}
 
-		return uuid.Nil, err
+		return err
 	}
 
-	return userId, nil
+	return nil
 }
 
 func (r *UserRepository) Authenticate(ctx context.Context, username string, password string) (uuid.UUID, error) {

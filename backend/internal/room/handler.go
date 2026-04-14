@@ -2,7 +2,6 @@ package room
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	ut "github.com/go-playground/universal-translator"
@@ -39,8 +38,7 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// if error is not a MalformedRequest, log and send a 500 internal server error.
-			log.Println(err)
-			utilities.ServerErrorJSON(w)
+			utilities.ServerErrorJSON(w, err)
 			return
 		}
 
@@ -52,7 +50,7 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			utilities.ServerErrorJSON(w)
+			utilities.ServerErrorJSON(w, err)
 			return
 		}
 
@@ -64,8 +62,7 @@ func (h *RoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			log.Println(err)
-			utilities.ServerErrorJSON(w)
+			utilities.ServerErrorJSON(w, err)
 			return
 		}
 
