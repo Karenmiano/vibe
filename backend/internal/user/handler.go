@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	"github.com/gorilla/sessions"
 
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
@@ -23,15 +23,15 @@ type loginUserData struct {
 
 type UserHandler struct {
 	userService *UserService
-	sessionStore sessions.Store
+	sessionManager *scs.SessionManager
 	validator *validator.Validate
 	trans ut.Translator
 }
 
-func NewUserHandler(userService *UserService, sessionStore sessions.Store, validator *validator.Validate, trans ut.Translator) *UserHandler {
+func NewUserHandler(userService *UserService, sessionManager *scs.SessionManager, validator *validator.Validate, trans ut.Translator) *UserHandler {
 	return &UserHandler{
 		userService: userService,
-		sessionStore: sessionStore,
+		sessionManager: sessionManager,
 		validator: validator,
 		trans: trans,
 	}
@@ -110,7 +110,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := h.userService.LoginUser(r.Context(), creds.Username, creds.Password)
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
-			utilities.WriteJSON(w, http.StatusBadRequest, map[string]string{"message": ErrInvalidCredentials.Error()})
+			utilities.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": ErrInvalidCredentials.Error()})
 			return
 		}
 
@@ -118,22 +118,20 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	session, _ := h.sessionStore.Get(r, "vibe")
-	session.Values["userId"] = userId
-	err = session.Save(r, w)
+	// create a session and add userId to it
+	// renew the sesion token first to prevent session fixation attacks
+	err = h.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		utilities.ServerErrorJSON(w, err)
 		return
 	}
+	h.sessionManager.Put(r.Context(), "userId", userId)
 
 	utilities.WriteJSON(w, http.StatusOK, map[string]string{"message": "login successful"})
 }
 
 func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
-	session, _ := h.sessionStore.Get(r, "vibe")
-	delete(session.Values, "userId")
-	err := session.Save(r, w)
+	err := h.sessionManager.Destroy(r.Context())
 	if err != nil {
 		utilities.ServerErrorJSON(w, err)
 		return
