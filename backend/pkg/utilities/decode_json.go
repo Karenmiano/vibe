@@ -39,10 +39,11 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dstn any) error {
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
-	err := dec.Decode(&dstn)
+	err := dec.Decode(dstn)
 	if err != nil {
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
+		var invalidUnmarshalError *json.InvalidUnmarshalError
 		var maxBytesError *http.MaxBytesError
 
 		switch {
@@ -94,6 +95,8 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dstn any) error {
 				Status: http.StatusRequestEntityTooLarge,
 				Msg: msg,
 			}
+		case errors.As(err, &invalidUnmarshalError): // 
+			return fmt.Errorf("DecodeJSONBody: dstn must be a non-nil pointer, got %T", dstn)
 		default:
 			return err
 		}
