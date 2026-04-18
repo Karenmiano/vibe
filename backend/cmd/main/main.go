@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/alexedwards/scs/goredisstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
-	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/Karenmiano/vibe/internal/database/postgres"
 	"github.com/Karenmiano/vibe/internal/hub"
@@ -21,27 +23,38 @@ import (
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
-func main() {
+
+func run() error {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		return err
 	}
-
-	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer dbpool.Close()
 
 	gob.Register(uuid.UUID{})
 
-	sessionStore := sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
-	sessionStore.Options.HttpOnly = true
-	sessionStore.Options.SameSite = http.SameSiteLaxMode
+	// Postgres db connection
+	dbpool, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		return err
+	}
+	defer dbpool.Close()
+
+	// Redis connection
+	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+	if err != nil {
+		return err
+	}
+	rdb := redis.NewClient(opt)
+	defer rdb.Close()
+
+
+	// Initialize a new session manager and configure it to use goredisstore as the session store.
+	sessionManager := scs.New()
+	sessionManager.Store = goredisstore.New(rdb)
 
 	validator, trans := utilities.NewValidator()
 
-	authMiddleware := middleware.NewAuthMiddleware(sessionStore)
+	authMiddleware := middleware.NewAuthMiddleware(sessionManager)
 
 	mux := http.NewServeMux()
 
@@ -61,17 +74,23 @@ func main() {
 
 	userRepo := postgres.NewUserRepository(dbpool)
 	userService := user.NewUserService(userRepo)
-	userHandler := user.NewUserHandler(userService, sessionStore)
-	mux.HandleFunc("GET /register", userHandler.RegistrationForm)
+	userHandler := user.NewUserHandler(userService, sessionManager, validator, trans)
 	mux.HandleFunc("POST /register", userHandler.RegisterUser)
-	mux.HandleFunc("GET /login", userHandler.LoginForm)
 	mux.HandleFunc("POST /login", userHandler.LoginUser)
 	mux.HandleFunc("POST /logout", userHandler.LogoutUser)
 
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)
-	if err := http.ListenAndServe(port, mux); err != nil {
-		log.Fatal("ListenAndServe: ", err)
+	if err := http.ListenAndServe(port, sessionManager.LoadAndSave(mux)); err != nil {
+		return fmt.Errorf("ListenAndServe: %w", err)
 	}
+
+	return nil
 }
 
+func main() {
+	if err := run(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}

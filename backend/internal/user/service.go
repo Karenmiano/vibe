@@ -16,7 +16,7 @@ func NewUserService(repo UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) RegisterUser(ctx context.Context, username string, password string) (uuid.UUID, error) {
+func (s *UserService) RegisterUser(ctx context.Context, username string, password string) error {
 	return s.repo.RegisterUser(ctx, username, password)
 }
 

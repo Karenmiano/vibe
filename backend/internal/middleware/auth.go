@@ -4,30 +4,31 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/google/uuid"
-	"github.com/gorilla/sessions"
+
+	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
 type contextKey string
 const UserIDKey contextKey = "userId"
 
 type AuthMiddleware struct {
-	sessionStore sessions.Store
+	sessionManager *scs.SessionManager
 }
 
-func NewAuthMiddleware(sessionStore sessions.Store) *AuthMiddleware {
+func NewAuthMiddleware(sessionManager *scs.SessionManager) *AuthMiddleware {
 	return &AuthMiddleware{
-		sessionStore: sessionStore,
+		sessionManager: sessionManager,
 	}
 }
 
 
 func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := m.sessionStore.Get(r, "vibe")
-		userId, ok := session.Values["userId"].(uuid.UUID)
+		userId, ok := m.sessionManager.Get(r.Context(), "userId").(uuid.UUID)
 		if !ok {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			utilities.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": "authentication required"})
 			return
 		}
 

@@ -8,11 +8,11 @@ import (
 )
 
 var( 
-	ErrUserExists = errors.New("Username already exists")
-	ErrInvalidCredentials = errors.New("Invalid username or password")
+	ErrUserExists = errors.New("username already exists")
+	ErrInvalidCredentials = errors.New("invalid username or password")
 )
 
 type UserRepository interface {
-	RegisterUser(ctx context.Context, username string, password string) (uuid.UUID, error)
+	RegisterUser(ctx context.Context, username string, password string) error
 	Authenticate(ctx context.Context, username string, password string) (uuid.UUID, error)
 }

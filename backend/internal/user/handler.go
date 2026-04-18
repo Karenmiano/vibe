@@ -2,146 +2,140 @@ package user
 
 import (
 	"errors"
-	"log"
 	"net/http"
-	"regexp"
-	"unicode/utf8"
 
-	"github.com/gorilla/sessions"
+	"github.com/alexedwards/scs/v2"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
-
-var rxUserName = regexp.MustCompile(`^[a-zA-Z0-9._]+$`)
-
-type CreateUserData struct {
-	Username string
-	Password string
-	Errors map[string][]string
+type createUserData struct {
+	Username string `json:"username" validate:"required,username,min=3,max=16"`
+	Password string `json:"password" validate:"required,min=6,max=72"`
 }
 
-func (data *CreateUserData) Validate() bool {
-	data.Errors = make(map[string][]string)
-
-	if !rxUserName.MatchString(data.Username) {
-		data.Errors["username"] = append(data.Errors["username"], "Username can only contain letters, numbers, dots (.), and underscores (_)")
-	} else {
-		uLen := utf8.RuneCountInString(data.Username)
-		if uLen < 3 {
-			data.Errors["username"] = append(data.Errors["username"], "Username must be at least 3 characters long")
-		} else if uLen > 16 {
-			data.Errors["username"] = append(data.Errors["username"], "Username cannot exceed 16 characters")
-		}
-	}
-
-	pLen := utf8.RuneCountInString(data.Password)
-	if pLen < 6 {
-		data.Errors["password"] = append(data.Errors["password"], "Password must be at least 6 characters long")
-	} else if pLen > 72 {
-		data.Errors["password"] = append(data.Errors["password"], "Password is too long")
-	}
-	
-	return len(data.Errors) == 0
+type loginUserData struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
-
 
 type UserHandler struct {
 	userService *UserService
-	sessionStore sessions.Store
+	sessionManager *scs.SessionManager
+	validator *validator.Validate
+	trans ut.Translator
 }
 
-func NewUserHandler(userService *UserService, sessionStore sessions.Store) *UserHandler {
+func NewUserHandler(userService *UserService, sessionManager *scs.SessionManager, validator *validator.Validate, trans ut.Translator) *UserHandler {
 	return &UserHandler{
 		userService: userService,
-		sessionStore: sessionStore,
+		sessionManager: sessionManager,
+		validator: validator,
+		trans: trans,
 	}
-}
-
-func (h *UserHandler) RegistrationForm(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/register.html", nil, http.StatusOK)
 }
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	newUserData := &CreateUserData{
-		Username: r.PostFormValue("username"),
-		Password: r.PostFormValue("password"),
-	}
+	var newUserData createUserData
 
-	if newUserData.Validate() == false {
-		utilities.Render(w, "web/templates/register.html", newUserData, http.StatusBadRequest)
+	err := utilities.DecodeJSONBody(w, r, &newUserData)
+	if err != nil {
+		var mr *utilities.MalformedRequest
+		if errors.As(err, &mr) {
+			utilities.WriteJSON(w, mr.Status, map[string]string{"message": mr.Msg})
+			return
+		}
+		// if error is not a MalformedRequest, log and send a 500 internal server error.
+		utilities.ServerErrorJSON(w, err)
 		return
 	}
 
-	userId, err := h.userService.RegisterUser(r.Context(), newUserData.Username, newUserData.Password)
+	err = h.validator.Struct(newUserData)
+	if err != nil {
+		var validateErrors validator.ValidationErrors
+		if errors.As(err, &validateErrors) {
+			utilities.WriteJSON(w, http.StatusUnprocessableEntity, utilities.TransformErrors(validateErrors, h.trans))
+			return
+		}
+
+		utilities.ServerErrorJSON(w, err)
+		return
+	}
+
+	err = h.userService.RegisterUser(r.Context(), newUserData.Username, newUserData.Password)
 	if err != nil {
 		// if username is taken return error message on field username
 		if errors.Is(err, ErrUserExists) {
-			newUserData.Errors["username"] = append(newUserData.Errors["username"], ErrUserExists.Error())
-			utilities.Render(w, "web/templates/register.html", newUserData, http.StatusBadRequest)
+			utilities.WriteJSON(w, http.StatusUnprocessableEntity, map[string]string{"username": ErrUserExists.Error()})
 			return
 		}
 
-		log.Println(err)	
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		utilities.ServerErrorJSON(w, err)
 		return
 	}
 
-	// logging user in by giving a session cookie
-	session, _ := h.sessionStore.Get(r, "vibe")
-	session.Values["userId"] = userId
-	err = session.Save(r, w)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("User registration success!"))
+	utilities.WriteJSON(w, http.StatusCreated, map[string]string{"message": "user created successfully"})
 }
 
-
-func (h *UserHandler) LoginForm(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/login.html", nil, http.StatusOK)
-}
 
 func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
-	userId, err := h.userService.LoginUser(r.Context(), r.PostFormValue("username"), r.PostFormValue("password"))
+	var creds loginUserData
+
+	err := utilities.DecodeJSONBody(w, r, &creds)
 	if err != nil {
-		if errors.Is(err, ErrInvalidCredentials) {
-			utilities.Render(w, "web/templates/login.html", ErrInvalidCredentials.Error(), http.StatusBadRequest)
+		var mr *utilities.MalformedRequest
+		if errors.As(err, &mr) {
+			utilities.WriteJSON(w, mr.Status, map[string]string{"message": mr.Msg})
 			return
 		}
 
-		log.Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		utilities.ServerErrorJSON(w, err)
 		return
 	}
 
-
-	session, _ := h.sessionStore.Get(r, "vibe")
-	session.Values["userId"] = userId
-	err = session.Save(r, w)
+	err = h.validator.Struct(creds)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		var validateErrors validator.ValidationErrors
+		if errors.As(err, &validateErrors) {
+			utilities.WriteJSON(w, http.StatusUnprocessableEntity, utilities.TransformErrors(validateErrors, h.trans))
+			return
+		}
+
+		utilities.ServerErrorJSON(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Login successful"))
+	userId, err := h.userService.LoginUser(r.Context(), creds.Username, creds.Password)
+	if err != nil {
+		if errors.Is(err, ErrInvalidCredentials) {
+			utilities.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": ErrInvalidCredentials.Error()})
+			return
+		}
+
+		utilities.ServerErrorJSON(w, err)
+		return
+	}
+
+	// create a session and add userId to it
+	// renew the sesion token first to prevent session fixation attacks
+	err = h.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		utilities.ServerErrorJSON(w, err)
+		return
+	}
+	h.sessionManager.Put(r.Context(), "userId", userId)
+
+	utilities.WriteJSON(w, http.StatusOK, map[string]string{"message": "login successful"})
 }
 
 func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
-	session, _ := h.sessionStore.Get(r, "vibe")
-	delete(session.Values, "userId")
-	err := session.Save(r, w)
+	err := h.sessionManager.Destroy(r.Context())
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		utilities.ServerErrorJSON(w, err)
 		return
 	}
-
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	
+	w.WriteHeader(http.StatusNoContent)
 }
