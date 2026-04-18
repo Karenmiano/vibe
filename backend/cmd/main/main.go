@@ -23,10 +23,11 @@ import (
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
-func main() {
+
+func run() error {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		return err
 	}
 
 	gob.Register(uuid.UUID{})
@@ -34,14 +35,14 @@ func main() {
 	// Postgres db connection
 	dbpool, err := pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer dbpool.Close()
 
 	// Redis connection
 	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	rdb := redis.NewClient(opt)
 	defer rdb.Close()
@@ -81,6 +82,15 @@ func main() {
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)
 	if err := http.ListenAndServe(port, sessionManager.LoadAndSave(mux)); err != nil {
-		log.Panic("ListenAndServe: ", err)
+		return fmt.Errorf("ListenAndServe: %w", err)
+	}
+
+	return nil
+}
+
+func main() {
+	if err := run(); err != nil {
+		log.Println(err)
+		os.Exit(1)
 	}
 }
