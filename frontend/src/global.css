@@ -1,4 +1,9 @@
 :root {
+  /*
+  options for base-color:
+  midnight indigo - hsl(240,18%,10%)
+  navy slate - hsl(220,20%,10%)
+  */
   --base-color: #0e0e0e;
   --text-color: #ffffff;
   --secondary-text-color: hsl(0, 0%, 100%, 0.4);
