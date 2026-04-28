@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import styles from "./SignUp.module.css";
+import styles from "./Auth.module.css";
 
 export const Route = createFileRoute("/_auth/signup")({
   component: SignUp,
