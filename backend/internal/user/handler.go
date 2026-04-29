@@ -12,6 +12,8 @@ import (
 )
 
 type createUserData struct {
+	FullName string `json:"fullName" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
 	Username string `json:"username" validate:"required,username,min=3,max=16"`
 	Password string `json:"password" validate:"required,min=6,max=72"`
 }
@@ -64,11 +66,13 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.RegisterUser(r.Context(), newUserData.Username, newUserData.Password)
+	err = h.userService.RegisterUser(r.Context(), newUserData.FullName, newUserData.Email, newUserData.Username, newUserData.Password)
 	if err != nil {
-		// if username is taken return error message on field username
-		if errors.Is(err, ErrUserExists) {
-			utilities.WriteJSON(w, http.StatusUnprocessableEntity, map[string]string{"username": ErrUserExists.Error()})
+		if errors.Is(err, ErrUsernameTaken) { // if username is taken return error message on field username
+			utilities.WriteJSON(w, http.StatusConflict, map[string]string{"username": ErrUsernameTaken.Error()})
+			return
+		} else if errors.Is(err, ErrEmailTaken) { // if email is taken return error message on field email
+			utilities.WriteJSON(w, http.StatusConflict, map[string]string{"email": ErrEmailTaken.Error()})
 			return
 		}
 

@@ -24,20 +24,25 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
-func (r *UserRepository) RegisterUser(ctx context.Context, username string, password string) error {
+func (r *UserRepository) RegisterUser(ctx context.Context, fullName string, email string, username string, password string) error {
 	userId := uuid.New()
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
 	}
 
-	query := `INSERT INTO users (id, username, password) VALUES ($1, $2, $3)`
+	query := `INSERT INTO users (id, full_name, email, username, password) VALUES ($1, $2, $3, $4, $5)`
 
-	_, err = r.db.Exec(ctx, query, userId, username, passwordHash)
+	_, err = r.db.Exec(ctx, query, userId, fullName, email, username, passwordHash)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation{
-			return user.ErrUserExists
+			switch pgErr.ConstraintName {
+				case "users_username_key":
+					return user.ErrUsernameTaken
+				case "users_email_key":
+					return user.ErrEmailTaken
+			}
 		}
 
 		return err
