@@ -19,7 +19,7 @@ type createUserData struct {
 }
 
 type loginUserData struct {
-	Username string `json:"username" validate:"required"`
+	Identifier string `json:"identifier" validate:"required"` // identifier can be username or email
 	Password string `json:"password" validate:"required"`
 }
 
@@ -111,7 +111,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId, err := h.userService.LoginUser(r.Context(), creds.Username, creds.Password)
+	userId, err := h.userService.LoginUser(r.Context(), creds.Identifier, creds.Password)
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
 			utilities.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": ErrInvalidCredentials.Error()})

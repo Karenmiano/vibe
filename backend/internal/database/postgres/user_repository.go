@@ -51,12 +51,12 @@ func (r *UserRepository) RegisterUser(ctx context.Context, fullName string, emai
 	return nil
 }
 
-func (r *UserRepository) Authenticate(ctx context.Context, username string, password string) (uuid.UUID, error) {
+func (r *UserRepository) Authenticate(ctx context.Context, identifier string, password string) (uuid.UUID, error) { // identifier can be username or email
 	var userId uuid.UUID
 	var passwordHash []byte
 
-	query := `SELECT id, password FROM users WHERE username = $1`
-	err := r.db.QueryRow(ctx, query, username).Scan(&userId, &passwordHash)
+	query := `SELECT id, password FROM users WHERE username = $1 OR email = $1`
+	err := r.db.QueryRow(ctx, query, identifier).Scan(&userId, &passwordHash)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return uuid.Nil, user.ErrInvalidCredentials
