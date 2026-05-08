@@ -81,7 +81,7 @@ func run() error {
 
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)
-	if err := http.ListenAndServe(port, sessionManager.LoadAndSave(mux)); err != nil {
+	if err := http.ListenAndServe(port, middleware.CorsMiddleware(sessionManager.LoadAndSave(mux))); err != nil {
 		return fmt.Errorf("ListenAndServe: %w", err)
 	}
 
