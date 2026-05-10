@@ -1,0 +1,7 @@
+.error {
+  color: hsl(0, 100%, 55%);
+}
+
+.error::first-letter {
+  text-transform: uppercase;
+}

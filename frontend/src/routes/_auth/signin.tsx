@@ -26,7 +26,10 @@ function SignIn() {
       </button>
 
       <p className={styles.formFooter}>
-        Don't have an account? <Link to="/signup">Sign up here</Link>
+        Don't have an account?{" "}
+        <Link to="/signup" className={styles.linkAccent}>
+          Sign up here
+        </Link>
       </p>
     </form>
   );

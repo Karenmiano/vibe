@@ -46,3 +46,11 @@
 .formFooter {
   font-size: 0.875rem;
 }
+
+.centerLoader {
+  margin-inline: auto;
+}
+
+.linkAccent {
+  color: hsl(258, 90%, 72%);
+}

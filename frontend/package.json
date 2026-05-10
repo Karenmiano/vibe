@@ -15,8 +15,11 @@
     "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-router": "^1.158.0",
     "@tanstack/react-router-devtools": "^1.158.0",
+    "axios": "^1.16.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.74.0",
+    "react-hot-toast": "^2.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
