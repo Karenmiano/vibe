@@ -1,10 +1,10 @@
+import axios from "axios";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm, type FieldPath } from "react-hook-form";
 
 import InputError from "@/ui/InputError";
 import styles from "./Auth.module.css";
 import { api } from "@/api";
-import axios from "axios";
 import toast from "react-hot-toast";
 
 export const Route = createFileRoute("/_auth/signup")({

@@ -21,10 +21,12 @@ api.interceptors.response.use(
           toast.error(GENERIC_ERROR);
           break;
         case 401:
-          router.navigate({
-            to: "/signin",
-            search: { redirect: router.state.location.href },
-          });
+          if (router.state.location.pathname !== "/signin") {
+            router.navigate({
+              to: "/signin",
+              search: { redir: router.state.location.href },
+            });
+          }
           break;
         case 403:
           toast.error("You don't have permission to do that.");
