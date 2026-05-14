@@ -63,7 +63,6 @@ func run() error {
 	mux.Handle("/web/static/", http.StripPrefix("/web/static/", fs))
 
 	hub := hub.NewHub()
-	mux.Handle("/", authMiddleware.Authenticate(http.HandlerFunc(hub.Hub)))
 	mux.HandleFunc("/wsConnect", hub.ServeWebSocket)
 	go hub.Run()
 
@@ -78,6 +77,7 @@ func run() error {
 	mux.HandleFunc("POST /register", userHandler.RegisterUser)
 	mux.HandleFunc("POST /login", userHandler.LoginUser)
 	mux.HandleFunc("POST /logout", userHandler.LogoutUser)
+	mux.Handle("GET /whoami", authMiddleware.Authenticate(http.HandlerFunc(userHandler.WhoAmI)))
 
 	port := ":8080"
 	fmt.Printf("Server listening on http://localhost%s\n", port)

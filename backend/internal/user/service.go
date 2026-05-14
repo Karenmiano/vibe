@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 
+	"github.com/Karenmiano/vibe/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -22,4 +23,8 @@ func (s *UserService) RegisterUser(ctx context.Context, fullName string, email s
 
 func (s *UserService) LoginUser(ctx context.Context, identifier string, password string) (uuid.UUID, error) {
 	return s.repo.Authenticate(ctx, identifier, password)
+}
+
+func (s *UserService) GetUserByID(ctx context.Context, userId uuid.UUID) (*models.User, error) {
+	return s.repo.GetUserByID(ctx, userId)
 }

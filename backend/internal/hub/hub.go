@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/Karenmiano/vibe/pkg/utilities"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
@@ -45,10 +44,6 @@ func (h *Hub) Run() {
 			}
 		}
 	}
-}
-
-func (h *Hub) Hub(w http.ResponseWriter, r *http.Request) {
-	utilities.Render(w, "web/templates/hub.html", nil, http.StatusOK)
 }
 
 const socketBufferSize = 1024

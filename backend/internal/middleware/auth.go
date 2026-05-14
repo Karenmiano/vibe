@@ -10,8 +10,9 @@ import (
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
-type contextKey string
-const UserIDKey contextKey = "userId"
+// using struct{} to prevent collisions and avoid allocation
+type contextKey struct{}
+var UserIDKey = contextKey{}
 
 type AuthMiddleware struct {
 	sessionManager *scs.SessionManager

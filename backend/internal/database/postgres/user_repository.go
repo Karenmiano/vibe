@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/Karenmiano/vibe/internal/models"
 	"github.com/Karenmiano/vibe/internal/user"
 )
 
@@ -70,4 +71,18 @@ func (r *UserRepository) Authenticate(ctx context.Context, identifier string, pa
 	}
 
 	return userId, nil
+}
+
+func (r *UserRepository) GetUserByID(ctx context.Context, userId uuid.UUID) (*models.User, error) {
+	query := `SELECT id, full_name, username FROM users WHERE id = $1`
+	rows, _ := r.db.Query(ctx, query, userId)
+	currentUser, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[models.User])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, user.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &currentUser, nil
 }

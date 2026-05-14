@@ -7,7 +7,9 @@ import (
 	"github.com/alexedwards/scs/v2"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 
+	"github.com/Karenmiano/vibe/internal/middleware"
 	"github.com/Karenmiano/vibe/pkg/utilities"
 )
 
@@ -132,6 +134,27 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	h.sessionManager.Put(r.Context(), "userId", userId)
 
 	utilities.WriteJSON(w, http.StatusOK, map[string]string{"message": "login successful"})
+}
+
+func (h *UserHandler) WhoAmI(w http.ResponseWriter, r *http.Request) {
+	userId, ok := r.Context().Value(middleware.UserIDKey).(uuid.UUID)
+	if !ok {
+		utilities.ServerErrorJSON(w, errors.New("Failed to retrieve user ID from context"))
+		return
+	}
+
+	currentUser, err := h.userService.GetUserByID(r.Context(), userId)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			utilities.WriteJSON(w, http.StatusNotFound, map[string]string{"message": ErrUserNotFound.Error()})
+			return
+		}
+
+		utilities.ServerErrorJSON(w, err)
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, currentUser)
 }
 
 func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
