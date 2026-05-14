@@ -113,7 +113,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId, err := h.userService.LoginUser(r.Context(), creds.Identifier, creds.Password)
+	retrievedUser, err := h.userService.LoginUser(r.Context(), creds.Identifier, creds.Password)
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
 			utilities.WriteJSON(w, http.StatusUnauthorized, map[string]string{"message": ErrInvalidCredentials.Error()})
@@ -131,9 +131,9 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		utilities.ServerErrorJSON(w, err)
 		return
 	}
-	h.sessionManager.Put(r.Context(), "userId", userId)
+	h.sessionManager.Put(r.Context(), "userId", retrievedUser.ID)
 
-	utilities.WriteJSON(w, http.StatusOK, map[string]string{"message": "login successful"})
+	utilities.WriteJSON(w, http.StatusOK, retrievedUser)
 }
 
 func (h *UserHandler) WhoAmI(w http.ResponseWriter, r *http.Request) {
@@ -166,3 +166,4 @@ func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
 	
 	w.WriteHeader(http.StatusNoContent)
 }
+

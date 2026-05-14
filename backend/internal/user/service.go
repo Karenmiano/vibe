@@ -21,7 +21,7 @@ func (s *UserService) RegisterUser(ctx context.Context, fullName string, email s
 	return s.repo.RegisterUser(ctx, fullName, email, username, password)
 }
 
-func (s *UserService) LoginUser(ctx context.Context, identifier string, password string) (uuid.UUID, error) {
+func (s *UserService) LoginUser(ctx context.Context, identifier string, password string) (*models.User, error) {
 	return s.repo.Authenticate(ctx, identifier, password)
 }
 

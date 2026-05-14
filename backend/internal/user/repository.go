@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Karenmiano/vibe/internal/models"
 	"github.com/google/uuid"
+
+	"github.com/Karenmiano/vibe/internal/models"
 )
 
 var( 
@@ -17,6 +18,6 @@ var(
 
 type UserRepository interface {
 	RegisterUser(ctx context.Context, fullName string, email string, username string, password string) error
-	Authenticate(ctx context.Context, identifier string, password string) (uuid.UUID, error) // identifier can be username or email
+	Authenticate(ctx context.Context, identifier string, password string) (*models.User, error) // identifier can be username or email
 	GetUserByID(ctx context.Context, userId uuid.UUID) (*models.User, error)
 }

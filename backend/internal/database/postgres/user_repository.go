@@ -52,25 +52,25 @@ func (r *UserRepository) RegisterUser(ctx context.Context, fullName string, emai
 	return nil
 }
 
-func (r *UserRepository) Authenticate(ctx context.Context, identifier string, password string) (uuid.UUID, error) { // identifier can be username or email
-	var userId uuid.UUID
+func (r *UserRepository) Authenticate(ctx context.Context, identifier string, password string) (*models.User, error) { // identifier can be username or email
+	var retrievedUser models.User
 	var passwordHash []byte
 
-	query := `SELECT id, password FROM users WHERE username = $1 OR email = $1`
-	err := r.db.QueryRow(ctx, query, identifier).Scan(&userId, &passwordHash)
+	query := `SELECT id, full_name, username, password FROM users WHERE username = $1 OR email = $1`
+	err := r.db.QueryRow(ctx, query, identifier).Scan(&retrievedUser.ID, &retrievedUser.FullName, &retrievedUser.Username, &passwordHash)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, user.ErrInvalidCredentials
+			return nil, user.ErrInvalidCredentials
 		}
-		return uuid.Nil, err
+		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword(passwordHash, []byte(password))
 	if err != nil {
-		return uuid.Nil, user.ErrInvalidCredentials
+		return nil, user.ErrInvalidCredentials
 	}
 
-	return userId, nil
+	return &retrievedUser, nil
 }
 
 func (r *UserRepository) GetUserByID(ctx context.Context, userId uuid.UUID) (*models.User, error) {
