@@ -51,6 +51,8 @@ func run() error {
 	// Initialize a new session manager and configure it to use goredisstore as the session store.
 	sessionManager := scs.New()
 	sessionManager.Store = goredisstore.New(rdb)
+	sessionManager.Cookie.SameSite = http.SameSiteNoneMode
+	sessionManager.Cookie.Secure = true
 
 	validator, trans := utilities.NewValidator()
 
