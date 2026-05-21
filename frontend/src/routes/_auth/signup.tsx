@@ -1,5 +1,10 @@
 import axios from "axios";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useForm, type FieldPath } from "react-hook-form";
 
 import InputError from "@/ui/InputError";
@@ -9,6 +14,11 @@ import toast from "react-hot-toast";
 
 export const Route = createFileRoute("/_auth/signup")({
   component: SignUp,
+  beforeLoad: ({ context }) => {
+    if (context.auth.isAuthenticated) {
+      throw redirect({ to: "/app" });
+    }
+  },
 });
 
 type SignUpFormData = {

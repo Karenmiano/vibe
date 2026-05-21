@@ -1,9 +1,19 @@
-import { createFileRoute, Outlet, useMatch } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  redirect,
+  useMatch,
+} from "@tanstack/react-router";
 
 import ChatList from "@/features/chats/components/ChatList";
 import styles from "./AppLayout.module.css";
 
 export const Route = createFileRoute("/app")({
+  beforeLoad: ({ context, location }) => {
+    if (!context.auth?.isAuthenticated) {
+      throw redirect({ to: "/signin", search: { redir: location.href } });
+    }
+  },
   component: AppLayout,
 });
 

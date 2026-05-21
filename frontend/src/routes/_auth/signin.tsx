@@ -1,10 +1,14 @@
 import axios from "axios";
 import { z } from "zod";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useForm, type FieldPath } from "react-hook-form";
 
 import InputError from "@/ui/InputError";
-import { api } from "@/api";
 import styles from "./Auth.module.css";
 
 export const Route = createFileRoute("/_auth/signin")({
@@ -12,6 +16,11 @@ export const Route = createFileRoute("/_auth/signin")({
   validateSearch: z.object({
     redir: z.string().default("/app").catch("/app"),
   }),
+  beforeLoad: ({ context, search }) => {
+    if (context.auth.isAuthenticated) {
+      throw redirect({ to: search.redir });
+    }
+  },
 });
 
 type SignInFormData = {
@@ -27,14 +36,15 @@ function SignIn() {
     setError,
   } = useForm<SignInFormData>();
 
-  const navigate = useNavigate();
   const { redir } = Route.useSearch();
-  
+  const { auth } = Route.useRouteContext();
+  const navigate = useNavigate();
+
   async function onSubmit(data: SignInFormData) {
     if (isSubmitting) return;
 
     try {
-      await api.post("/login", data);
+      await auth.login(data.identifier, data.password);
 
       // on success, redirect to the page the user originally wanted to visit, or to the app home
       navigate({ to: redir });

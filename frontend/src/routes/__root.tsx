@@ -1,8 +1,14 @@
 import * as React from "react";
-import { Outlet, createRootRoute } from "@tanstack/react-router";
-// import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-export const Route = createRootRoute({
+import type { AuthState } from "@/features/auth/types";
+
+type RouterContext = {
+  auth: AuthState;
+};
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });
 
@@ -10,7 +16,7 @@ function RootComponent() {
   return (
     <React.Fragment>
       <Outlet />
-      {/* <TanStackRouterDevtools /> */}
+      <TanStackRouterDevtools />
     </React.Fragment>
   );
 }
