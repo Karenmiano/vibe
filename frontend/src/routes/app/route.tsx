@@ -5,6 +5,7 @@ import {
   useMatch,
 } from "@tanstack/react-router";
 
+import AppBar from "@/ui/AppBar";
 import ChatList from "@/features/chats/components/ChatList";
 import styles from "./AppLayout.module.css";
 
@@ -22,7 +23,10 @@ function AppLayout() {
 
   return (
     <div className={`${styles.container} ${chatOpen ? styles.chatOpen : ""}`}>
-      <ChatList />
+      <div className={styles.leadPanel}>
+        <AppBar />
+        <ChatList />
+      </div>
       <Outlet />
     </div>
   );

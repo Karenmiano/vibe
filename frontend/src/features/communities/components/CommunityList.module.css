@@ -25,7 +25,9 @@
   .communitiesList {
     grid-template-columns: 1fr 1fr;
   }
+}
 
+@media (min-width: 960px) {
   .communities {
     padding: var(--page-top-gap) 1rem 0;
   }

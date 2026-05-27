@@ -1,0 +1,16 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.square {
+  height: 32px;
+  width: 32px;
+  border-radius: 0.5rem;
+  background-color: hsl(258, 90%, 72%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

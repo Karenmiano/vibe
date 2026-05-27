@@ -11,7 +11,7 @@ export default function ChatList() {
       </header>
 
       <ul className={styles.chatFilters}>
-        <li className="active">All</li>
+        <li className={styles.active}>All</li>
         <li>Personal</li>
         <li>Groups</li>
       </ul>

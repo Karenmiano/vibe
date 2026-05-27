@@ -7,7 +7,7 @@
   --base-color: #0e0e0e;
   --text-color: #ffffff;
   --secondary-text-color: hsl(0, 0%, 100%, 0.4);
-  --page-top-gap: 1rem;
+  --page-top-gap: 0.625rem;
 }
 
 *,
@@ -35,6 +35,10 @@ button,
 textarea,
 select {
   font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {

@@ -31,4 +31,10 @@
     overflow: hidden;
     padding-left: 0rem;
   }
+
+  .leadPanel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 }
